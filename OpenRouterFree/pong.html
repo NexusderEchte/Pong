@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Pong - Konsole</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #111; color: #fff; font-family: sans-serif; }
+        canvas { border: 2px solid #fff; background: #000; }
+        .info { text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div>
+        <canvas id="pong" width="600" height="400"></canvas>
+        <div class="info">
+            <p>Steuerung: Links <strong>W</strong> / <strong>S</strong> &nbsp;|&nbsp; Rechts <strong>Pfeil hoch</strong> / <strong>Pfeil runter</strong></p>
+            <p>Punkte: Links <span id="sl">0</span> : <span id="sr">0</span> Rechts</p>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('pong');
+        const ctx = canvas.getContext('2d');
+
+        const BREITE = canvas.width;
+        const HOEHE = canvas.height;
+
+        // Spieler
+        const spielerLinks = { y: HOEHE / 2 - 30, hoehe: 60, breite: 10, punkte: 0 };
+        const spielerRechts = { y: HOEHE / 2 - 30, hoehe: 60, breite: 10, punkte: 0 };
+
+        // Ball
+        let ballX = BREITE / 2;
+        let ballY = HOEHE / 2;
+        let ballDirX = 2;
+        let ballDirY = 2;
+        const ballRadius = 6;
+        const geschwindigkeit = 4;
+        let ballPause = false;
+
+        // Tastenstatus
+        const tasten = {};
+        document.addEventListener('keydown', (e) => { tasten[e.key] = true; });
+        document.addEventListener('keyup', (e) => { tasten[e.key] = false; });
+
+        function resetBall() {
+            ballX = BREITE / 2;
+            ballY = HOEHE / 2;
+            ballDirX = -ballDirX;
+            ballDirY = (Math.random() - 0.5) * 2;
+            ballPause = true;
+            setTimeout(() => { ballPause = false; }, 1500);
+        }
+
+        function update() {
+            // Spieler bewegen
+            if (tasten['w'] && spielerLinks.y > 0) spielerLinks.y -= geschwindigkeit;
+            if (tasten['s'] && spielerLinks.y + spielerLinks.hoehe < HOEHE) spielerLinks.y += geschwindigkeit;
+            if (tasten['ArrowUp'] && spielerRechts.y > 0) spielerRechts.y -= geschwindigkeit;
+            if (tasten['ArrowDown'] && spielerRechts.y + spielerRechts.hoehe < HOEHE) spielerRechts.y += geschwindigkeit;
+
+            // Ball bewegen (nicht während der Verzögerung)
+            if (!ballPause) {
+                ballX += ballDirX;
+                ballY += ballDirY;
+
+                // Wand oben/unten abprallen
+                if (ballY - ballRadius <= 0 || ballY + ballRadius >= HOEHE) {
+                    ballDirY *= -1;
+                }
+
+                // Balken links
+                if (ballX - ballRadius <= spielerLinks.breite && ballY >= spielerLinks.y && ballY <= spielerLinks.y + spielerLinks.hoehe) {
+                    ballDirX = Math.abs(ballDirX);
+                    ballDirY = (ballY - (spielerLinks.y + spielerLinks.hoehe / 2)) * 0.2;
+                }
+
+                // Balken rechts
+                if (ballX + ballRadius >= BREITE - spielerRechts.breite && ballY >= spielerRechts.y && ballY <= spielerRechts.y + spielerRechts.hoehe) {
+                    ballDirX = -Math.abs(ballDirX);
+                    ballDirY = (ballY - (spielerRechts.y + spielerRechts.hoehe / 2)) * 0.2;
+                }
+            }
+
+            // Punkt erzielt
+            if (ballX < 0) {
+                spielerRechts.punkte++;
+                document.getElementById('sr').textContent = spielerRechts.punkte;
+                resetBall();
+            } else if (ballX > BREITE) {
+                spielerLinks.punkte++;
+                document.getElementById('sl').textContent = spielerLinks.punkte;
+                resetBall();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, BREITE, HOEHE);
+
+            // Mittellinie
+            ctx.strokeStyle = '#444';
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(BREITE / 2, 0);
+            ctx.lineTo(BREITE / 2, HOEHE);
+            ctx.stroke();
+
+            // Spieler zeichnen
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, spielerLinks.y, spielerLinks.breite, spielerLinks.hoehe);
+            ctx.fillRect(BREITE - spielerRechts.breite, spielerRechts.y, spielerRechts.breite, spielerRechts.hoehe);
+
+            // Ball zeichnen
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>
