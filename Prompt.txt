@@ -1,0 +1,71 @@
+Du sollst ein kleines Pong-Spiel als Browser-Spiel entwickeln.
+
+Ziel:
+Erstelle ein einfaches, spielbares Pong-Spiel mit HTML, CSS und JavaScript. Das Spiel soll lokal im Browser laufen und später mit http-server gestartet werden können.
+
+Technische Vorgaben:
+- Verwende nur HTML, CSS und Vanilla JavaScript.
+- Keine externen Libraries oder Frameworks.
+- Lege die Dateien übersichtlich an:
+  - index.html
+  - style.css
+  - script.js
+- Das Spiel muss über eine normale index.html im Browser startbar sein.
+- Der Code soll verständlich, sauber strukturiert und kommentiert sein, aber nicht übertrieben.
+
+Spielprinzip:
+- Es gibt ein rechteckiges Spielfeld.
+- Links befindet sich Spieler 1 mit einem vertikalen Balken.
+- Rechts befindet sich Spieler 2 mit einem vertikalen Balken.
+- Ein Ball bewegt sich automatisch über das Spielfeld.
+- Der Ball prallt oben und unten an der Spielfeldbegrenzung ab.
+- Der Ball prallt an den Spielerbalken ab.
+- Wenn der Ball links aus dem Spielfeld fliegt, bekommt Spieler 2 einen Punkt.
+- Wenn der Ball rechts aus dem Spielfeld fliegt, bekommt Spieler 1 einen Punkt.
+- Nach einem Punkt wird der Ball in der Mitte neu gestartet.
+- Der Punktestand wird sichtbar angezeigt.
+
+Steuerung:
+- Spieler 1 links:
+  - W = nach oben
+  - S = nach unten
+- Spieler 2 rechts:
+  - Pfeil hoch = nach oben
+  - Pfeil runter = nach unten
+
+Gameplay-Anforderungen:
+- Die Balken dürfen das Spielfeld oben und unten nicht verlassen.
+- Die Ballgeschwindigkeit soll angenehm spielbar sein.
+- Nach jedem Treffer darf der Ball leicht schneller werden.
+- Nach einem Punkt soll die Geschwindigkeit wieder normal starten.
+- Das Spiel soll direkt nach dem Öffnen spielbar sein.
+- Optional kann eine kurze Startanzeige eingebaut werden: „Drücke Leertaste zum Starten“.
+
+Design:
+- Schlichtes Retro-Design.
+- Dunkler Hintergrund.
+- Weiße Balken, weißer Ball, weiße Spielfeldlinien.
+- Punktestand oben mittig oder oben links/rechts.
+- Das Spiel soll sauber im Browser zentriert angezeigt werden.
+
+Fehler vermeiden:
+- Kein Flackern.
+- Keine Scrollbars durch das Spielfeld.
+- Keine kaputte Kollisionslogik.
+- Kein Ball, der im Balken hängen bleibt.
+- Keine Steuerung, die nur einmal reagiert statt gedrückt gehalten zu werden.
+
+Abnahme:
+Am Ende soll das Spiel mit diesen Schritten startbar sein:
+
+1. Im Projektordner:
+   http-server
+
+2. Im Browser:
+   http://localhost:8080
+
+Bitte gib am Ende einen kurzen Abschlussbericht aus:
+- Welche Dateien wurden erstellt?
+- Wie startet man das Spiel?
+- Welche Steuerung wird verwendet?
+- Welche Funktionen sind umgesetzt?
