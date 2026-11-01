@@ -1,148 +1,122 @@
-# Pong - Browser Game
+# Ping Pong
 
-Ein klassisches Pong-Spiel implementiert mit HTML, CSS und Vanilla JavaScript.
+A browser-based Ping Pong game for a university project. This repository currently contains the frontend foundation only. The game, authentication, and Supabase integration will be added in later milestones.
 
-## 📁 Projektstruktur
+## Tech Stack
 
-```
-PongKi/
-├── README.md                 # Diese Datei
-└── Nemotron3UltraFree/       # Spiel-Verzeichnis
-    ├── index.html            # Haupt-HTML-Datei
-    ├── style.css             # Styling (Retro-Design)
-    └── script.js             # Spiellogik
-```
+- React 19
+- TypeScript
+- Vite
+- HTML and CSS
+- Vitest with React Testing Library
+- Playwright
+- ESLint and Prettier
 
-## 🚀 Installation & Start
+## Requirements
 
-### Voraussetzungen
-- Node.js (für `http-server`) oder Python 3
-- Moderner Browser (Chrome, Firefox, Edge, Safari)
+- Node.js 20.19+ or 22.12+
+- npm
 
-### Variante 1: Mit Node.js (empfohlen)
+## Installation
 
 ```bash
-# 1. Ins Projektverzeichnis wechseln
-cd C:\Users\rober\Desktop\PongKi\Nemotron3UltraFree
-
-# 2. http-server installieren (falls noch nicht global installiert)
-npm install -g http-server
-# oder einmalig ohne Installation:
-npx http-server
-
-# 3. Server starten
-http-server
-
-# 4. Im Browser öffnen
-# http://localhost:8080
+npm install
 ```
 
-### Variante 2: Mit Python 3
+Optional: install the Playwright browser used by the end-to-end tests.
 
 ```bash
-# 1. Ins Projektverzeichnis wechseln
-cd C:\Users\rober\Desktop\PongKi\Nemotron3UltraFree
-
-# 2. Python HTTP Server starten
-python -m http.server 8080
-
-# 3. Im Browser öffnen
-# http://localhost:8080
+npx playwright install chromium
 ```
 
-### Variante 3: Direkt im Browser (ohne Server)
+## Development
 
-Einfach `index.html` doppelklicken oder per Drag & Drop in den Browser ziehen.
-> ⚠️ Hinweis: Bei manchen Browsern können CORS-Restriktionen auftreten. Ein lokaler Server (Variante 1/2) wird empfohlen.
+Start the Vite development server:
 
-## 🎮 Spielanleitung
-
-### Ziel
-Verhindere, dass der Ball an deiner Seite das Spielfeld verlässt. Der Gegner bekommt einen Punkt, wenn du den Ball verpasst.
-
-### Steuerung
-
-| Spieler | Position | Hoch | Runter |
-|---------|----------|------|--------|
-| Spieler 1 | Links | **W** | **S** |
-| Spieler 2 | Rechts | **Pfeil ↑** | **Pfeil ↓** |
-
-### Spielstart
-1. Seite laden → Startmeldung "Drücke Leertaste zum Starten" erscheint
-2. **Leertaste** drücken → Spiel beginnt
-3. Nach jedem Punkt: Ball startet automatisch neu aus der Mitte
-
-### Spielmechanik
-- Ball prallt an oberer/unterer Wand ab
-- Ball prallt an Paddles ab (Winkel hängt von Treffpunkt ab)
-- Nach jedem Paddle-Treffer wird der Ball **leicht schneller** (max. 12)
-- Nach Punktgewinn: Ball-Geschwindigkeit wird **zurückgesetzt**
-- Paddles können das Spielfeld **nicht verlassen**
-
-## ⚙️ Technische Details
-
-- **Canvas-Größe:** 800 × 500 px
-- **Paddle-Größe:** 15 × 100 px
-- **Ball-Größe:** 12 px (Kreis)
-- **Start-Geschwindigkeit:** 5 px/Frame
-- **Max-Geschwindigkeit:** 12 px/Frame
-- **Beschleunigung pro Treffer:** ×1.08
-
-## 🎨 Design
-
-- Dunkler Hintergrund (`#1a1a1a` / `#000`)
-- Weiße Elemente (`#fff`)
-- Retro-Monospace-Schrift (`Courier New`)
-- Zentrierte Darstellung, keine Scrollbars
-- Blinkender Doppelpunkt im Score
-- Pulsierende Startmeldung
-
-## 🛠️ Entwicklung
-
-### Dateien bearbeiten
-- `index.html` – Struktur, Canvas, UI-Elemente
-- `style.css` – Aussehen, Animationen, Layout
-- `script.js` – Spiellogik, Physik, Input-Handling
-
-### Konfiguration anpassen (in `script.js`)
-```javascript
-const CONFIG = {
-    canvasWidth: 800,
-    canvasHeight: 500,
-    paddleWidth: 15,
-    paddleHeight: 100,
-    ballSize: 12,
-    paddleSpeed: 7,
-    initialBallSpeed: 5,
-    maxBallSpeed: 12,
-    speedIncrease: 1.08
-};
+```bash
+npm run dev
 ```
 
-## 📋 Checkliste für Abnahme
+The application is available at http://localhost:5173.
 
-- [ ] `http-server` startet ohne Fehler
-- [ ] Spiel lädt unter `http://localhost:8080`
-- [ ] Startmeldung sichtbar
-- [ ] Leertaste startet Spiel
-- [ ] Spieler 1: W/S funktioniert (gehalten)
-- [ ] Spieler 2: Pfeiltasten funktionieren (gehalten)
-- [ ] Ball prallt an Wänden ab
-- [ ] Ball prallt an Paddles ab (inkl. Winkel)
-- [ ] Ball wird nach Treffern schneller
-- [ ] Punkte werden gezählt & angezeigt
-- [ ] Ball reset nach Punkt (Normalspeed)
-- [ ] Paddles verlassen Spielfeld nicht
-- [ ] Kein Flackern, keine Scrollbars
-- [ ] Ball hängt nicht im Paddle fest
+## Available Scripts
 
-## 🐛 Bekannte Limitierungen
+| Script                 | Purpose                                      |
+| ---------------------- | -------------------------------------------- |
+| `npm run dev`          | Start the development server                 |
+| `npm run build`        | Type-check and create a production build     |
+| `npm run preview`      | Preview the production build locally         |
+| `npm run typecheck`    | Run the TypeScript compiler without emitting |
+| `npm run lint`         | Run ESLint                                   |
+| `npm run lint:fix`     | Run ESLint and fix issues where possible     |
+| `npm run format`       | Format all files with Prettier               |
+| `npm run format:check` | Check formatting without changing files      |
+| `npm test`             | Run unit tests once with Vitest              |
+| `npm run test:watch`   | Run unit tests in watch mode                 |
+| `npm run test:e2e`     | Run Playwright end-to-end tests              |
+| `npm run test:e2e:ui`  | Run Playwright tests in interactive UI mode  |
 
-- Keine KI / Einzelspielermodus
-- Keine Pause-Funktion
-- Keine Sound-Effekte
-- Keine mobilen Touch-Controls
+## Project Structure
 
-## 📄 Lizenz
+```text
+.
+├── e2e/                    # Playwright end-to-end tests
+├── public/                 # Static assets served as-is
+├── src/
+│   ├── pages/              # Route-level page components
+│   ├── test/               # Test setup and shared test utilities
+│   ├── App.test.tsx        # Example React Testing Library test
+│   ├── App.tsx             # Root application component
+│   ├── index.css           # Global styles
+│   └── main.tsx            # Application entry point
+├── index.html              # Vite HTML entry point
+├── eslint.config.js        # ESLint configuration
+├── playwright.config.ts    # Playwright configuration
+├── vite.config.ts          # Vite and Vitest configuration
+└── tsconfig*.json          # TypeScript configuration
+```
 
-Frei für private und Bildungszwecke.
+Additional folders such as `src/components`, `src/hooks`, and `src/lib` can be added as the application grows. Keep the structure as simple as possible until a feature requires more separation.
+
+## Testing
+
+Unit and component tests use Vitest, jsdom, and React Testing Library. Test files live next to the code they test and use the `*.test.ts` or `*.test.tsx` suffix.
+
+End-to-end tests use Playwright and live in the `e2e/` directory. Playwright starts the Vite development server automatically.
+
+## Dependencies
+
+### Runtime
+
+- `react` — UI library used to build the application.
+- `react-dom` — Renders React components into the browser DOM.
+
+### Development
+
+- `vite` — Development server and production build tool.
+- `@vitejs/plugin-react` — React support, including Fast Refresh, for Vite.
+- `typescript` — Type-safe JavaScript compiler.
+- `@types/react`, `@types/react-dom` — TypeScript definitions for React.
+- `@types/node` — TypeScript definitions for Node.js APIs used by config files.
+- `eslint` — Static analysis and code quality checks.
+- `@eslint/js` — ESLint's recommended JavaScript rules.
+- `typescript-eslint` — TypeScript parser and rules for ESLint.
+- `eslint-plugin-react-hooks` — Enforces React Hooks rules.
+- `eslint-plugin-react-refresh` — Enforces Vite's Fast Refresh constraints.
+- `eslint-config-prettier` — Disables ESLint rules that conflict with Prettier.
+- `globals` — Browser and Node.js global definitions for ESLint.
+- `prettier` — Consistent code formatting.
+- `vitest` — Unit test runner integrated with Vite.
+- `jsdom` — Browser-like DOM environment for unit tests.
+- `@testing-library/react` — Renders and queries React components in tests.
+- `@testing-library/jest-dom` — Adds DOM-specific test matchers.
+- `@playwright/test` — End-to-end browser testing framework.
+
+## Scope
+
+This milestone intentionally does not include:
+
+- Ping Pong gameplay
+- Supabase integration
+- Authentication
+- Additional UI frameworks or state management libraries
