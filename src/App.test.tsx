@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('renders the application heading', () => {
+  it('renders the dashboard by default', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: /ping pong/i }),
+      screen.getByRole('heading', { name: /dashboard/i }),
     ).toBeInTheDocument();
   });
 });
