@@ -1,6 +1,6 @@
 # Ping Pong
 
-A browser-based Ping Pong game for a university project. This repository currently contains the frontend foundation only. The game, authentication, and Supabase integration will be added in later milestones.
+A browser-based Ping Pong web application for a university project. This repository contains a complete UI prototype with mock authentication, a player dashboard, a visual match screen, player profiles, and a global leaderboard. All data is local mock data; there is no backend or database integration.
 
 ## Tech Stack
 
@@ -39,6 +39,15 @@ npm run dev
 
 The application is available at http://localhost:5173.
 
+### Demo Access
+
+Use the demo account or the "Use demo account" shortcut on the login screen:
+
+- Email: `demo@pingpong.app`
+- Password: `pong1234`
+
+New accounts created through the registration form are kept in memory for the current session. The signed-in user is stored in `localStorage` so a page reload keeps the session.
+
 ## Available Scripts
 
 | Script                 | Purpose                                      |
@@ -63,11 +72,15 @@ The application is available at http://localhost:5173.
 ├── e2e/                    # Playwright end-to-end tests
 ├── public/                 # Static assets served as-is
 ├── src/
+│   ├── components/         # Reusable UI components and app shell
+│   ├── context/            # Mock authentication provider and context
+│   ├── data/               # Mock players, matches and leaderboard data
+│   ├── lib/                # Routing, validation and formatting helpers
 │   ├── pages/              # Route-level page components
 │   ├── test/               # Test setup and shared test utilities
-│   ├── App.test.tsx        # Example React Testing Library test
+│   ├── App.test.tsx        # Authentication and routing tests
 │   ├── App.tsx             # Root application component
-│   ├── index.css           # Global styles
+│   ├── index.css           # Global styles and design tokens
 │   └── main.tsx            # Application entry point
 ├── index.html              # Vite HTML entry point
 ├── eslint.config.js        # ESLint configuration
@@ -76,7 +89,7 @@ The application is available at http://localhost:5173.
 └── tsconfig*.json          # TypeScript configuration
 ```
 
-Additional folders such as `src/components`, `src/hooks`, and `src/lib` can be added as the application grows. Keep the structure as simple as possible until a feature requires more separation.
+The application uses a small hash-based router instead of an additional routing dependency. Authentication, match, and leaderboard data are mocked in `src/data`.
 
 ## Testing
 
@@ -114,9 +127,18 @@ End-to-end tests use Playwright and live in the `e2e/` directory. Playwright sta
 
 ## Scope
 
-This milestone intentionally does not include:
+This UI prototype includes:
 
-- Ping Pong gameplay
+- Login and registration with client-side validation and mock authentication
+- Dashboard with match statistics, recent results, and personal bests
+- Visual match screen with scoreboard, start/pause/reset controls, and manual point scoring
+- Player profile with career statistics and mock match history
+- Global leaderboard with a highlighted top three and the signed-in player
+- Responsive layouts and reusable React components
+
+It intentionally does not include:
+
+- Real authentication, a backend, or database integration
 - Supabase integration
-- Authentication
+- Full ping pong game physics or automated gameplay
 - Additional UI frameworks or state management libraries
