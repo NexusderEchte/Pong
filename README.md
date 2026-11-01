@@ -1,6 +1,9 @@
 # Ping Pong
 
-A browser-based Ping Pong game for a university project. This repository currently contains the frontend foundation only. The game, authentication, and Supabase integration will be added in later milestones.
+A browser-based Ping Pong game for a university project. This milestone is a
+complete UI prototype with mock authentication, a player dashboard, a visual
+match screen, player profiles and a global leaderboard. All data is mocked in
+the frontend; no backend or Supabase integration is included yet.
 
 ## Tech Stack
 
@@ -63,11 +66,16 @@ The application is available at http://localhost:5173.
 ├── e2e/                    # Playwright end-to-end tests
 ├── public/                 # Static assets served as-is
 ├── src/
+│   ├── components/         # Reusable UI components and layout
+│   ├── context/            # Mock authentication context
+│   ├── data/               # Mock player, match and leaderboard data
+│   ├── hooks/              # Hash-based navigation hook
+│   ├── lib/                # Formatting, validation and helpers
 │   ├── pages/              # Route-level page components
-│   ├── test/               # Test setup and shared test utilities
-│   ├── App.test.tsx        # Example React Testing Library test
+│   ├── test/               # Test setup and shared fixtures
+│   ├── App.test.tsx        # Application flow tests
 │   ├── App.tsx             # Root application component
-│   ├── index.css           # Global styles
+│   ├── index.css           # Global styles and design tokens
 │   └── main.tsx            # Application entry point
 ├── index.html              # Vite HTML entry point
 ├── eslint.config.js        # ESLint configuration
@@ -75,8 +83,6 @@ The application is available at http://localhost:5173.
 ├── vite.config.ts          # Vite and Vitest configuration
 └── tsconfig*.json          # TypeScript configuration
 ```
-
-Additional folders such as `src/components`, `src/hooks`, and `src/lib` can be added as the application grows. Keep the structure as simple as possible until a feature requires more separation.
 
 ## Testing
 
@@ -114,9 +120,13 @@ End-to-end tests use Playwright and live in the `e2e/` directory. Playwright sta
 
 ## Scope
 
-This milestone intentionally does not include:
+This milestone is a visual prototype. It intentionally does not include:
 
-- Ping Pong gameplay
-- Supabase integration
-- Authentication
+- Real authentication or persistent user accounts
+- Supabase or database integration
+- Full Ping Pong physics or match logic
 - Additional UI frameworks or state management libraries
+
+Mock login accepts any valid email address and a password with at least six
+characters. The session is stored in `localStorage` so the prototype survives a
+page reload.
