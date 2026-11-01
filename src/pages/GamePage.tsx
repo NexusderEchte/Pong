@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ClockIcon,
   PauseIcon,
@@ -14,38 +14,39 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useAuth } from '../context/AuthContext';
+import {
+  COURT_HEIGHT,
+  COURT_WIDTH,
+  WINNING_SCORE,
+  createInitialState,
+  pauseGame,
+  startGame,
+  stepGame,
+  type GameStatus,
+  type PaddleInput,
+} from '../game/pong';
 import { formatDuration } from '../lib/format';
-
-type MatchStatus = 'idle' | 'playing' | 'paused' | 'finished';
-type Side = 'home' | 'away';
-
-interface Scores {
-  home: number;
-  away: number;
-}
 
 const OPPONENT = {
   name: 'SmashKing',
   accent: '#ffc857',
 };
 
-const WINNING_SCORE = 11;
-
-const statusMeta: Record<MatchStatus, { label: string; tone: BadgeTone }> = {
-  idle: { label: 'Ready', tone: 'neutral' },
+const statusMeta: Record<GameStatus, { label: string; tone: BadgeTone }> = {
+  ready: { label: 'Ready', tone: 'neutral' },
   playing: { label: 'Live', tone: 'accent' },
   paused: { label: 'Paused', tone: 'warning' },
-  finished: { label: 'Match over', tone: 'success' },
+  finished: { label: 'Game over', tone: 'success' },
 };
 
 function GamePage() {
   const { user } = useAuth();
-  const [status, setStatus] = useState<MatchStatus>('idle');
-  const [scores, setScores] = useState<Scores>({ home: 0, away: 0 });
+  const [game, setGame] = useState(createInitialState);
   const [elapsed, setElapsed] = useState(0);
+  const keysRef = useRef<PaddleInput>({ up: false, down: false });
 
   useEffect(() => {
-    if (status !== 'playing') {
+    if (game.status !== 'playing') {
       return;
     }
 
@@ -54,53 +55,109 @@ function GamePage() {
     }, 1000);
 
     return () => window.clearInterval(interval);
-  }, [status]);
+  }, [game.status]);
+
+  useEffect(() => {
+    if (game.status !== 'playing') {
+      return;
+    }
+
+    let frame = 0;
+    let previous = performance.now();
+
+    const tick = (now: number) => {
+      const delta = (now - previous) / 1000;
+      previous = now;
+
+      setGame((current) => stepGame(current, delta, keysRef.current));
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    frame = window.requestAnimationFrame(tick);
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [game.status]);
+
+  useEffect(() => {
+    const setPressed = (key: string, pressed: boolean): boolean => {
+      if (key === 'ArrowUp' || key === 'w' || key === 'W') {
+        keysRef.current.up = pressed;
+        return true;
+      }
+
+      if (key === 'ArrowDown' || key === 's' || key === 'S') {
+        keysRef.current.down = pressed;
+        return true;
+      }
+
+      return false;
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!setPressed(event.key, true)) {
+        return;
+      }
+
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        event.preventDefault();
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      setPressed(event.key, false);
+    };
+
+    const releaseKeys = () => {
+      keysRef.current = { up: false, down: false };
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', releaseKeys);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', releaseKeys);
+    };
+  }, []);
 
   if (!user) {
     return null;
   }
 
+  const { status, scores, winner } = game;
   const activeStatus = statusMeta[status];
-  const winner =
-    scores.home >= WINNING_SCORE
-      ? user.username
-      : scores.away >= WINNING_SCORE
-        ? OPPONENT.name
-        : null;
+  const winnerName =
+    winner === 'human' ? user.username : winner === 'ai' ? OPPONENT.name : null;
+
+  const humanPaddleStyle = {
+    top: `${(game.humanY / COURT_HEIGHT) * 100}%`,
+  };
+  const aiPaddleStyle = {
+    top: `${(game.aiY / COURT_HEIGHT) * 100}%`,
+  };
+  const ballStyle = {
+    left: `${(game.ball.x / COURT_WIDTH) * 100}%`,
+    top: `${(game.ball.y / COURT_HEIGHT) * 100}%`,
+  };
 
   const startMatch = () => {
-    if (status === 'idle' || status === 'paused') {
-      setStatus('playing');
+    if (status === 'ready') {
+      setElapsed(0);
     }
+
+    setGame(startGame);
   };
 
   const pauseMatch = () => {
-    if (status === 'playing') {
-      setStatus('paused');
-    }
+    setGame(pauseGame);
   };
 
-  const resetMatch = () => {
-    setStatus('idle');
-    setScores({ home: 0, away: 0 });
+  const restartMatch = () => {
+    setGame(createInitialState());
     setElapsed(0);
-  };
-
-  const addPoint = (side: Side) => {
-    if (status !== 'playing') {
-      return;
-    }
-
-    const nextScores = {
-      home: scores.home + (side === 'home' ? 1 : 0),
-      away: scores.away + (side === 'away' ? 1 : 0),
-    };
-
-    setScores(nextScores);
-
-    if (nextScores.home >= WINNING_SCORE || nextScores.away >= WINNING_SCORE) {
-      setStatus('finished');
-    }
+    keysRef.current = { up: false, down: false };
   };
 
   return (
@@ -108,7 +165,7 @@ function GamePage() {
       <PageHeader
         eyebrow="The arena"
         title="Play a match"
-        description="A visual match prototype with a live scoreboard and simulated points."
+        description="Take on the AI opponent in a real match. First to five wins."
         actions={<Badge tone={activeStatus.tone}>{activeStatus.label}</Badge>}
       />
 
@@ -116,7 +173,7 @@ function GamePage() {
         <Card className="game-card">
           <div className="game-topbar">
             <div>
-              <p className="eyebrow">Ranked match</p>
+              <p className="eyebrow">Solo match</p>
               <strong>First to {WINNING_SCORE}</strong>
             </div>
             <div className="match-status" role="status" aria-live="polite">
@@ -145,7 +202,7 @@ function GamePage() {
                 className="score-number"
                 aria-label={`${user.username} score`}
               >
-                {scores.home}
+                {scores.human}
               </span>
             </div>
 
@@ -159,10 +216,10 @@ function GamePage() {
                 className="score-number"
                 aria-label={`${OPPONENT.name} score`}
               >
-                {scores.away}
+                {scores.ai}
               </span>
               <div className="score-player">
-                <span>Opponent</span>
+                <span>AI opponent</span>
                 <strong>{OPPONENT.name}</strong>
               </div>
               <Avatar
@@ -177,14 +234,28 @@ function GamePage() {
           <div className={`ping-field status-${status}`}>
             <div className="field-center-line" />
             <div className="field-net" />
-            <span className="ping-paddle ping-paddle-left" />
-            <span className="ping-paddle ping-paddle-right" />
-            <span className="ping-ball" />
+            <span
+              className="ping-paddle ping-paddle-left"
+              style={humanPaddleStyle}
+              data-testid="human-paddle"
+            />
+            <span
+              className="ping-paddle ping-paddle-right"
+              style={aiPaddleStyle}
+              data-testid="ai-paddle"
+            />
+            <span
+              className="ping-ball"
+              style={ballStyle}
+              data-testid="ping-ball"
+            />
 
-            {status === 'idle' ? (
+            {status === 'ready' ? (
               <div className="field-overlay">
                 <strong>Ready when you are</strong>
-                <span>Press start to begin the rally.</span>
+                <span>
+                  Start the match, then move with W/S or the arrow keys.
+                </span>
               </div>
             ) : null}
 
@@ -195,13 +266,17 @@ function GamePage() {
               </div>
             ) : null}
 
-            {status === 'finished' && winner ? (
+            {status === 'finished' && winnerName ? (
               <div className="field-overlay field-winner">
                 <TrophyIcon />
-                <strong>{winner} wins</strong>
+                <strong>{winnerName} wins</strong>
                 <span>
-                  {scores.home} – {scores.away}
+                  {scores.human} – {scores.ai}
                 </span>
+                <Button size="sm" onClick={restartMatch}>
+                  <ResetIcon />
+                  Play again
+                </Button>
               </div>
             ) : null}
           </div>
@@ -223,13 +298,13 @@ function GamePage() {
                 <PauseIcon />
                 Pause
               </Button>
-              <Button variant="ghost" onClick={resetMatch}>
+              <Button variant="ghost" onClick={restartMatch}>
                 <ResetIcon />
-                Reset
+                Restart
               </Button>
             </div>
             <span className="control-hint">
-              Visual prototype — no ball physics required.
+              Move up with W or ↑, down with S or ↓.
             </span>
           </div>
         </Card>
@@ -248,7 +323,7 @@ function GamePage() {
             <dl className="setup-list">
               <div>
                 <dt>Mode</dt>
-                <dd>Ranked</dd>
+                <dd>Solo vs AI</dd>
               </div>
               <div>
                 <dt>Format</dt>
@@ -268,34 +343,25 @@ function GamePage() {
           <Card className="panel-card">
             <div className="card-heading">
               <div>
-                <p className="eyebrow">Scoreboard controls</p>
-                <h2>Simulate a point</h2>
+                <p className="eyebrow">Controls</p>
+                <h2>Move your paddle</h2>
               </div>
-              <Badge tone={status === 'playing' ? 'accent' : 'neutral'}>
-                {status === 'playing' ? 'Unlocked' : 'Start match'}
-              </Badge>
+              <Badge tone="neutral">Keyboard</Badge>
             </div>
-            <p className="panel-copy">
-              Award a point to either player while the match is live.
-            </p>
-            <div className="point-grid">
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => addPoint('home')}
-                disabled={status !== 'playing'}
-              >
-                +1 {user.username}
-              </Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => addPoint('away')}
-                disabled={status !== 'playing'}
-              >
-                +1 {OPPONENT.name}
-              </Button>
-            </div>
+            <dl className="setup-list">
+              <div>
+                <dt>Move up</dt>
+                <dd>W / ↑</dd>
+              </div>
+              <div>
+                <dt>Move down</dt>
+                <dd>S / ↓</dd>
+              </div>
+              <div>
+                <dt>Pause</dt>
+                <dd>Pause button</dd>
+              </div>
+            </dl>
           </Card>
 
           <Card className="panel-card tip-card">
@@ -303,10 +369,10 @@ function GamePage() {
               <ZapIcon />
             </span>
             <div>
-              <h2>Prototype mode</h2>
+              <h2>Beat the bot</h2>
               <p>
-                Start, pause and reset the match. Points are awarded manually so
-                the visual flow can be explored without game physics.
+                The AI tracks the ball and anticipates wall bounces. Use sharp
+                angles and quick reactions to win the rally.
               </p>
             </div>
           </Card>

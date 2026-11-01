@@ -1,6 +1,6 @@
 # Ping Pong
 
-A browser-based Ping Pong web application for a university project. This repository contains a complete UI prototype with mock authentication, a player dashboard, a visual match screen, player profiles, and a global leaderboard. All data is local mock data; there is no backend or database integration.
+A browser-based Ping Pong web application for a university project. This repository contains a playable match against an AI opponent alongside mock authentication, a player dashboard, player profiles, and a global leaderboard. Account, profile, and leaderboard data are local mock data; there is no backend or database integration.
 
 ## Tech Stack
 
@@ -47,6 +47,12 @@ Use the demo account or the "Use demo account" shortcut on the login screen:
 - Password: `pong1234`
 
 New accounts created through the registration form are kept in memory for the current session. The signed-in user is stored in `localStorage` so a page reload keeps the session.
+
+### Game Controls
+
+- Move your paddle up: `W` or `Arrow Up`
+- Move your paddle down: `S` or `Arrow Down`
+- Use the on-screen buttons to start, pause, resume, or restart the match.
 
 ## Available Scripts
 
@@ -131,7 +137,7 @@ This UI prototype includes:
 
 - Login and registration with client-side validation and mock authentication
 - Dashboard with match statistics, recent results, and personal bests
-- Visual match screen with scoreboard, start/pause/reset controls, and manual point scoring
+- Playable single-player match against an AI opponent with ball physics, keyboard paddle controls, automatic scoring, a first-to-five winning condition, and pause/restart controls
 - Player profile with career statistics and mock match history
 - Global leaderboard with a highlighted top three and the signed-in player
 - Responsive layouts and reusable React components

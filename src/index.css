@@ -1774,40 +1774,6 @@ code {
   transform: translate(-50%, -50%);
 }
 
-.ping-field.status-idle .ping-ball,
-.ping-field.status-paused .ping-ball {
-  top: 50%;
-  left: 50%;
-}
-
-.ping-field.status-playing .ping-ball,
-.ping-field.status-paused .ping-ball {
-  animation: ball-rally 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-}
-
-.ping-field.status-paused .ping-ball {
-  animation-play-state: paused;
-}
-
-.ping-field.status-finished .ping-ball {
-  top: 50%;
-  left: 82%;
-}
-
-@keyframes ball-rally {
-  0% {
-    top: 34%;
-    left: 18%;
-  }
-  50% {
-    top: 64%;
-  }
-  100% {
-    top: 42%;
-    left: 82%;
-  }
-}
-
 .field-overlay {
   position: absolute;
   inset: 0;
@@ -1841,6 +1807,10 @@ code {
 
 .field-winner strong {
   font-size: 1.35rem;
+}
+
+.field-winner .btn {
+  margin-top: 0.55rem;
 }
 
 .game-controls {
