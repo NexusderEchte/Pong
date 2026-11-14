@@ -1,7 +1,88 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    "AGENTS.md",
-    "PROJECT_SPEC.md"
-  ]
+  "instructions": ["AGENTS.md", "PROJECT_SPEC.md"],
+  "agent": {
+    "build": {
+      "maxSteps": 30
+    }
+  },
+  "permission": {
+    "read": {
+      "*": "allow",
+      ".env*": "deny",
+      "*/.env*": "deny",
+      ".env.example": "allow",
+      "*/.env.example": "allow"
+    },
+    "edit": {
+      "*": "allow",
+      ".env*": "deny",
+      "*/.env*": "deny",
+      ".env.example": "allow",
+      "*/.env.example": "allow",
+      "opencode.json": "deny",
+      "*/opencode.json": "deny",
+      "opencode.jsonc": "deny",
+      "*/opencode.jsonc": "deny",
+      "harness.config.json": "deny",
+      "*/harness.config.json": "deny"
+    },
+    "glob": "allow",
+    "list": "allow",
+    "grep": "ask",
+    "check-project": "allow",
+    "run-pong-checks": "allow",
+    "verify-pong-game": "allow",
+    "verify-supabase-backend": "allow",
+    "bash": {
+      "*": "ask",
+      "git *": "deny",
+      "git status *": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git show *": "allow",
+      "git branch": "allow",
+      "git branch --list": "allow",
+      "git branch -a": "allow",
+      "git branch -r": "allow",
+      "git branch -v": "allow",
+      "npm run typecheck": "allow",
+      "npm run lint": "allow",
+      "npm test": "allow",
+      "npm run test": "allow",
+      "npm run build": "allow",
+      "npm run format:check": "allow",
+      "npm run test:e2e": "allow",
+      "ls *": "allow",
+      "pwd": "allow",
+      "rm *": "deny",
+      "rmdir *": "deny",
+      "dd *": "deny",
+      "mkfs *": "deny",
+      "shred *": "deny",
+      "truncate *": "deny",
+      "sudo *": "deny",
+      "chmod -R *": "deny",
+      "find * -delete*": "deny",
+      "find * -exec *": "deny",
+      "xargs rm *": "deny",
+      "npm publish *": "deny",
+      "npm unpublish *": "deny",
+      "supabase db push *": "deny",
+      "supabase db reset *": "deny",
+      "supabase db pull *": "deny",
+      "supabase link *": "deny",
+      "printenv *": "deny",
+      "env *": "deny",
+      "set": "deny",
+      "export -p": "deny",
+      "*.env*": "deny"
+    },
+    "external_directory": "ask",
+    "webfetch": "ask",
+    "websearch": "ask",
+    "task": "ask",
+    "todowrite": "allow",
+    "question": "allow"
+  }
 }

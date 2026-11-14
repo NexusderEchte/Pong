@@ -30,8 +30,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const rankLabel =
     user.stats.rank > 0 ? `Rank #${user.stats.rank}` : 'Unranked';
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('login');
   };
 

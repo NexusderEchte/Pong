@@ -1,10 +1,19 @@
 import { expect, test } from '@playwright/test';
 
+const email = process.env.E2E_SUPABASE_EMAIL ?? '';
+const password = process.env.E2E_SUPABASE_PASSWORD ?? '';
+const hasCredentials = email.length > 0 && password.length > 0;
+
 test('starts, controls and restarts a match', async ({ page }) => {
+  test.skip(
+    !hasCredentials,
+    'Set E2E_SUPABASE_EMAIL and E2E_SUPABASE_PASSWORD to run this test.',
+  );
+
   await page.goto('/');
 
-  await page.getByLabel('Email address').fill('demo@pingpong.app');
-  await page.getByLabel('Password').fill('pong1234');
+  await page.getByLabel('Email address').fill(email);
+  await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await page
@@ -51,6 +60,8 @@ test('starts, controls and restarts a match', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Restart' }).click();
   await expect(page.getByRole('status')).toContainText('Ready');
-  await expect(page.getByLabel('NovaStrike score')).toHaveText('0');
-  await expect(page.getByLabel('SmashKing score')).toHaveText('0');
+
+  const scoreLabels = page.locator('[aria-label$="score"]');
+  await expect(scoreLabels.nth(0)).toHaveText('0');
+  await expect(scoreLabels.nth(1)).toHaveText('0');
 });

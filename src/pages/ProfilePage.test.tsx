@@ -1,25 +1,28 @@
-import { screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { loginAsDemo, navigateTo, renderApp } from '../test/testUtils';
+import { screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { loginAsUser, navigateTo, renderApp } from '../test/testUtils';
+
+vi.mock('../lib/supabase', async () => {
+  const { supabaseMock } = await import('../test/supabaseMock');
+  return { supabase: supabaseMock };
+});
 
 describe('profile page', () => {
-  it('shows profile information, statistics and mock match history', () => {
+  it('shows the signed-in player and an empty match history', async () => {
     renderApp();
-    loginAsDemo();
+    await loginAsUser();
     navigateTo('Profile');
 
     expect(
       screen.getByRole('heading', { name: 'Your player card' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Nova Lindqvist' }),
+      screen.getByRole('heading', { name: 'TestPlayer' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('@NovaStrike')).toBeInTheDocument();
+    expect(screen.getByText('@TestPlayer')).toBeInTheDocument();
+    expect(screen.getByText('testplayer@example.com')).toBeInTheDocument();
     expect(screen.getByText('Best match score')).toBeInTheDocument();
-
-    const historyTable = screen.getByRole('table');
-    expect(within(historyTable).getAllByRole('row')).toHaveLength(9);
-    expect(within(historyTable).getByText('SpinMaster')).toBeInTheDocument();
-    expect(within(historyTable).getByText('RallyQueen')).toBeInTheDocument();
+    expect(screen.getByText('No matches recorded')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 });

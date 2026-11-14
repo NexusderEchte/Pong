@@ -22,21 +22,29 @@ const routeTitles: Record<AppRoute, string> = {
 };
 
 function AppView() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { route, navigate } = useRouter();
   const authRoute = isAuthRoute(route);
 
   useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
     if (!user && !authRoute) {
       navigate('login');
     } else if (user && authRoute) {
       navigate('dashboard');
     }
-  }, [user, authRoute, navigate]);
+  }, [user, isLoading, authRoute, navigate]);
 
   useEffect(() => {
     document.title = `${routeTitles[route]} · Ping Pong`;
   }, [route]);
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!user) {
     return route === 'register' ? <RegisterPage /> : <LoginPage />;

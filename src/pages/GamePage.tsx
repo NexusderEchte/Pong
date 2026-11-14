@@ -14,6 +14,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import {
   COURT_HEIGHT,
   COURT_WIDTH,
@@ -39,11 +40,15 @@ const statusMeta: Record<GameStatus, { label: string; tone: BadgeTone }> = {
   finished: { label: 'Game over', tone: 'success' },
 };
 
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 function GamePage() {
   const { user } = useAuth();
   const [game, setGame] = useState(createInitialState);
   const [elapsed, setElapsed] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const keysRef = useRef<PaddleInput>({ up: false, down: false });
+  const savedResultRef = useRef(false);
 
   useEffect(() => {
     if (game.status !== 'playing') {
@@ -122,6 +127,27 @@ function GamePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (game.status !== 'finished' || !user || savedResultRef.current) {
+      return;
+    }
+
+    savedResultRef.current = true;
+    setSaveStatus('saving');
+
+    void (async () => {
+      try {
+        const { error } = await supabase
+          .from('games')
+          .insert({ username: user.username, score: game.scores.human });
+
+        setSaveStatus(error ? 'error' : 'saved');
+      } catch {
+        setSaveStatus('error');
+      }
+    })();
+  }, [game.status, game.scores.human, user]);
+
   if (!user) {
     return null;
   }
@@ -157,6 +183,8 @@ function GamePage() {
   const restartMatch = () => {
     setGame(createInitialState());
     setElapsed(0);
+    setSaveStatus('idle');
+    savedResultRef.current = false;
     keysRef.current = { up: false, down: false };
   };
 
@@ -273,6 +301,15 @@ function GamePage() {
                 <span>
                   {scores.human} – {scores.ai}
                 </span>
+                {saveStatus === 'saving' ? (
+                  <span role="status">Saving result...</span>
+                ) : null}
+                {saveStatus === 'saved' ? (
+                  <span role="status">Result saved.</span>
+                ) : null}
+                {saveStatus === 'error' ? (
+                  <span role="alert">Result could not be saved.</span>
+                ) : null}
                 <Button size="sm" onClick={restartMatch}>
                   <ResetIcon />
                   Play again
