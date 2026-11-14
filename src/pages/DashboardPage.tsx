@@ -15,20 +15,20 @@ import {
   ZapIcon,
 } from '../components/icons';
 import { useAuth } from '../context/AuthContext';
-import { getMatchHistory } from '../data/mockData';
 import { formatNumber, formatShortDate } from '../lib/format';
 import { useRouter } from '../lib/RouterContext';
+import { useMatchHistory } from '../lib/useMatchHistory';
 
 function DashboardPage() {
   const { user } = useAuth();
   const { navigate } = useRouter();
+  const { history, error: historyError } = useMatchHistory(user?.username);
 
   if (!user) {
     return null;
   }
 
   const { stats } = user;
-  const history = getMatchHistory(user);
   const recentMatches = history.slice(0, 4);
   const recentForm = history.slice(0, 5);
   const rankLabel = stats.rank > 0 ? `#${stats.rank}` : '—';
@@ -118,7 +118,15 @@ function DashboardPage() {
             </div>
           ) : null}
 
-          {recentMatches.length > 0 ? (
+          {historyError ? (
+            <div className="empty-state">
+              <span className="empty-icon">
+                <BallIcon />
+              </span>
+              <h3>Recent results unavailable</h3>
+              <p role="alert">{historyError}</p>
+            </div>
+          ) : recentMatches.length > 0 ? (
             <>
               <ul className="match-list">
                 {recentMatches.map((match) => {

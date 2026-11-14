@@ -14,9 +14,6 @@ interface FormValues {
 
 type FormErrors = Partial<Record<keyof FormValues, string>>;
 
-const DEMO_EMAIL = 'demo@pingpong.app';
-const DEMO_PASSWORD = 'pong1234';
-
 function validate(values: FormValues): FormErrors {
   const errors: FormErrors = {};
 
@@ -44,6 +41,7 @@ function LoginPage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateField = (field: keyof FormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -51,7 +49,7 @@ function LoginPage() {
     setFormError('');
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const nextErrors = validate(values);
@@ -62,20 +60,22 @@ function LoginPage() {
       return;
     }
 
-    const result = login(values.email, values.password);
+    setIsSubmitting(true);
 
-    if (!result.ok) {
-      setFormError(result.error);
-      return;
+    try {
+      const result = await login(values.email, values.password);
+
+      if (!result.ok) {
+        setFormError(result.error);
+        return;
+      }
+
+      navigate('dashboard');
+    } catch {
+      setFormError('Unable to sign in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    navigate('dashboard');
-  };
-
-  const fillDemoAccount = () => {
-    setValues({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
-    setErrors({});
-    setFormError('');
   };
 
   return (
@@ -117,25 +117,11 @@ function LoginPage() {
             </p>
           ) : null}
 
-          <Button type="submit" size="lg" fullWidth>
+          <Button type="submit" size="lg" fullWidth disabled={isSubmitting}>
             Sign in
             <ArrowRightIcon />
           </Button>
         </form>
-
-        <div className="demo-credentials">
-          <div>
-            <span className="eyebrow">Demo access</span>
-            <p>
-              <code>{DEMO_EMAIL}</code>
-              <span> / </span>
-              <code>{DEMO_PASSWORD}</code>
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={fillDemoAccount}>
-            Use demo account
-          </Button>
-        </div>
 
         <p className="auth-switch">
           New to the table?{' '}

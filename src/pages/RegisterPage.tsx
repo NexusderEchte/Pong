@@ -67,36 +67,53 @@ function RegisterPage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateField = (field: keyof FormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
     setFormError('');
+    setSuccessMessage('');
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const nextErrors = validate(values);
     setErrors(nextErrors);
     setFormError('');
+    setSuccessMessage('');
 
     if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
-    const result = register({
-      username: values.username,
-      email: values.email,
-      password: values.password,
-    });
+    setIsSubmitting(true);
 
-    if (!result.ok) {
-      setFormError(result.error);
-      return;
+    try {
+      const result = await register({
+        username: values.username,
+        email: values.email,
+        password: values.password,
+      });
+
+      if (!result.ok) {
+        setFormError(result.error);
+        return;
+      }
+
+      if (result.message) {
+        setSuccessMessage(result.message);
+        return;
+      }
+
+      navigate('dashboard');
+    } catch {
+      setFormError('Unable to create your account. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    navigate('dashboard');
   };
 
   return (
@@ -162,7 +179,13 @@ function RegisterPage() {
             </p>
           ) : null}
 
-          <Button type="submit" size="lg" fullWidth>
+          {successMessage ? (
+            <p className="field-hint" role="status">
+              {successMessage}
+            </p>
+          ) : null}
+
+          <Button type="submit" size="lg" fullWidth disabled={isSubmitting}>
             Create account
             <ArrowRightIcon />
           </Button>

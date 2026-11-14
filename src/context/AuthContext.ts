@@ -1,7 +1,8 @@
 import { createContext, useContext } from 'react';
 import type { User } from '../types';
 
-export type AuthResult = { ok: true } | { ok: false; error: string };
+export type AuthResult =
+  { ok: true; message?: string } | { ok: false; error: string };
 
 export interface RegisterInput {
   username: string;
@@ -11,9 +12,11 @@ export interface RegisterInput {
 
 export interface AuthContextValue {
   user: User | null;
-  login: (email: string, password: string) => AuthResult;
-  register: (input: RegisterInput) => AuthResult;
-  logout: () => void;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (input: RegisterInput) => Promise<AuthResult>;
+  logout: () => Promise<void>;
+  refreshStats: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
