@@ -14,22 +14,22 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useAuth } from '../context/AuthContext';
-import { getMatchHistory } from '../data/mockData';
 import { formatMonthYear, formatNumber, formatShortDate } from '../lib/format';
 import { useRouter } from '../lib/RouterContext';
+import { useMatchHistory } from '../lib/useMatchHistory';
 
 const opponentAccents = ['#ffc857', '#4da3ff', '#ff6b7a', '#b18cff', '#22e6a6'];
 
 function ProfilePage() {
   const { user } = useAuth();
   const { navigate } = useRouter();
+  const { history, error: historyError } = useMatchHistory(user?.username);
 
   if (!user) {
     return null;
   }
 
   const { stats } = user;
-  const history = getMatchHistory(user);
   const rankLabel = stats.rank > 0 ? `Rank #${stats.rank}` : 'Unranked player';
 
   return (
@@ -214,7 +214,15 @@ function ProfilePage() {
           </Badge>
         </div>
 
-        {history.length > 0 ? (
+        {historyError ? (
+          <div className="empty-state">
+            <span className="empty-icon">
+              <BallIcon />
+            </span>
+            <h3>Match history unavailable</h3>
+            <p role="alert">{historyError}</p>
+          </div>
+        ) : history.length > 0 ? (
           <div className="table-wrap">
             <table className="data-table profile-table">
               <thead>

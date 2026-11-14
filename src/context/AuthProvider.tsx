@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { fetchPlayerStats } from '../data/matches';
 import { supabase } from '../lib/supabase';
 import type { User } from '../types';
 import {
@@ -34,7 +35,11 @@ function emptyStats(): User['stats'] {
   };
 }
 
-function toAppUser(profile: ProfileRow, authUser: SupabaseUser): User {
+function toAppUser(
+  profile: ProfileRow,
+  authUser: SupabaseUser,
+  stats: User['stats'],
+): User {
   return {
     id: profile.id,
     username: profile.username,
@@ -44,8 +49,16 @@ function toAppUser(profile: ProfileRow, authUser: SupabaseUser): User {
     location: 'Not set yet',
     joinedAt: authUser.created_at ?? new Date().toISOString(),
     accent: '#4da3ff',
-    stats: emptyStats(),
+    stats,
   };
+}
+
+async function loadStats(username: string): Promise<User['stats']> {
+  try {
+    return await fetchPlayerStats(username);
+  } catch {
+    return emptyStats();
+  }
 }
 
 function metadataUsername(authUser: SupabaseUser): string {
@@ -174,8 +187,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const profile = await loadOrCreateProfile(session);
 
+        if (!profile) {
+          if (!cancelled) {
+            setUser(null);
+          }
+          return;
+        }
+
+        const stats = await loadStats(profile.username);
+
         if (!cancelled) {
-          setUser(profile ? toAppUser(profile, session.user) : null);
+          setUser(toAppUser(profile, session.user, stats));
         }
       } catch {
         if (!cancelled) {
@@ -236,7 +258,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           };
         }
 
-        setUser(toAppUser(profile, data.session.user));
+        const stats = await loadStats(profile.username);
+        setUser(toAppUser(profile, data.session.user, stats));
         return { ok: true };
       } catch {
         return {
@@ -277,14 +300,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const profile = await insertProfile(data.user.id, username);
-        setUser(toAppUser(profile, data.user));
+        const stats = await loadStats(profile.username);
+        setUser(toAppUser(profile, data.user, stats));
         return { ok: true };
       } catch (profileError) {
         if (isDuplicate(profileError)) {
           const existing = await fetchProfile(data.user.id);
 
           if (existing?.username === username) {
-            setUser(toAppUser(existing, data.user));
+            const stats = await loadStats(existing.username);
+            setUser(toAppUser(existing, data.user, stats));
             return { ok: true };
           }
 
@@ -313,9 +338,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshStats = useCallback(async () => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      const stats = await fetchPlayerStats(user.username);
+      setUser((current) =>
+        current && current.username === user.username
+          ? { ...current, stats }
+          : current,
+      );
+    } catch {
+      return;
+    }
+  }, [user]);
+
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout }),
-    [user, isLoading, login, register, logout],
+    () => ({ user, isLoading, login, register, logout, refreshStats }),
+    [user, isLoading, login, register, logout, refreshStats],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

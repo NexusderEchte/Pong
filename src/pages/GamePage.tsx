@@ -43,7 +43,7 @@ const statusMeta: Record<GameStatus, { label: string; tone: BadgeTone }> = {
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 function GamePage() {
-  const { user } = useAuth();
+  const { user, refreshStats } = useAuth();
   const [game, setGame] = useState(createInitialState);
   const [elapsed, setElapsed] = useState(0);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -137,16 +137,26 @@ function GamePage() {
 
     void (async () => {
       try {
-        const { error } = await supabase
-          .from('games')
-          .insert({ username: user.username, score: game.scores.human });
+        const { error } = await supabase.from('games').insert({
+          username: user.username,
+          score: game.scores.human,
+          opponent: OPPONENT.name,
+          opponent_score: game.scores.ai,
+          mode: 'Friendly',
+        });
 
-        setSaveStatus(error ? 'error' : 'saved');
+        if (error) {
+          setSaveStatus('error');
+          return;
+        }
+
+        setSaveStatus('saved');
+        await refreshStats();
       } catch {
         setSaveStatus('error');
       }
     })();
-  }, [game.status, game.scores.human, user]);
+  }, [game.status, game.scores.human, game.scores.ai, user, refreshStats]);
 
   if (!user) {
     return null;

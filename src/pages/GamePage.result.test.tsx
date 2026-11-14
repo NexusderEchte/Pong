@@ -59,6 +59,9 @@ describe('game result persistence', () => {
     expect(gamesQuery.insert).toHaveBeenCalledWith({
       username: TEST_PROFILE.username,
       score: 5,
+      opponent: 'SmashKing',
+      opponent_score: 2,
+      mode: 'Friendly',
     });
     expect(gamesQuery.insert).toHaveBeenCalledTimes(1);
   });

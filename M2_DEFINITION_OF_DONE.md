@@ -469,7 +469,7 @@ The selected M2 stop criterion is the native OpenCode agent step limit:
 | SC-ENF-2 | The criterion demonstrably takes effect.                           | Run a headless task with a temporary lower limit and capture the forced final summary and absence of further tool calls. | Stop is visible at the configured limit.                 | M2    |
 | SC-ENF-3 | The limit is documented in `AGENTS.md` and `HARNESS_README.md`.    | Documentation review.                                                                                                    | Limit, purpose, and demonstration method are documented. | M2    |
 
-**Evidence status:** the configuration is loaded and verified; the live stop demonstration is still required. A custom retry counter is not part of M2.
+**Evidence status:** the configuration is loaded and verified. The live stop was demonstrated with a temporary `agent.build.maxSteps = 3`: the run output explicitly stated that the maximum step budget was reached and that tools were disabled, the final stop reason was `stop`, and no files were modified. The committed limit remains 30. A custom retry counter is not part of M2. See `M2_EVIDENCE.md` §3.
 
 ---
 
@@ -520,24 +520,28 @@ OpenCode does not provide a sandbox of its own in this setup; isolation must be 
 | SB-5 | Tools enforce their own guards in addition to agent permissions. | Attempt remote DB target with the tool.        | Tool refuses independently.                   | PROPOSED |
 | SB-6 | Secret redaction is verified.                                    | Run tool with sentinel secret; scan output.    | Sentinel absent from output/artifacts.        | PROPOSED |
 
+**Evidence status (permission tests):** `npm run typecheck` ran without a prompt (SB-1). `npm install --dry-run` was evaluated as `ask` and a permission request was emitted, but the JetBrains ACP client resolved it as allow without displaying an approval prompt; therefore the "prompt appears" part of SB-2 is **not** demonstrated, and the honest claim is that the `ask` decision was delegated to the ACP client. `git push` was denied before execution (SB-3). See `M2_EVIDENCE.md` §4.
+
 ---
 
 ## 11. Final demonstration checklist
 
 The M2 demo must be rehearsable and reproducible. Each item needs a visible result.
 
+Checkbox legend: `[x]` evidenced; `[~]` partially evidenced; `[ ]` not evidenced.
+
 ### 11.1 Harness demonstration
 
 - [ ] **DEMO-1** Show harness configuration: base agent OpenCode 1.18.31, model in use, `opencode.json`, tool directory.
 - [ ] **DEMO-2** Invoke `check-project` (supporting tool) and show structured project info.
-- [ ] **DEMO-3** Invoke `verify-pong-game` on a green baseline; show structured `ok: true`.
-- [ ] **DEMO-4** Introduce a deliberate domain defect (e.g. wrong `WINNING_SCORE` handling) and run `verify-pong-game`; show a specific failing assertion.
-- [ ] **DEMO-5** Let the agent fix the defect and re-run; show pass. Save the log.
-- [ ] **DEMO-6** Invoke `verify-supabase-backend` against the green development/test project.
+- [x] **DEMO-3** Invoke `verify-pong-game` on a green baseline; show structured `ok: true`. (5/5 scenarios passed.)
+- [x] **DEMO-4** Introduce a deliberate domain defect (e.g. wrong `WINNING_SCORE` handling) and run `verify-pong-game`; show a specific failing assertion. (Temporary `x > 8` → `x > 100`; failure showed expected `x > 100`, actual `8.25`.)
+- [x] **DEMO-5** Let the agent fix the defect and re-run; show pass. Save the log. (Reverted to `x > 8`; 5/5 passed.)
+- [x] **DEMO-6** Invoke `verify-supabase-backend` against the green development/test project. (10/10 checks passed, including successful cleanup.)
 - [ ] **DEMO-7** Break a migration or RLS policy; show `schema`/`rls` failure with expected vs actual.
 - [ ] **DEMO-8** Fix and re-run; show pass.
-- [ ] **DEMO-9** Demonstrate the native step limit: use a temporary lower `agent.build.maxSteps` (for example via `OPENCODE_CONFIG_CONTENT`) on a task that would exceed it, then show the forced final text-only summary and the absence of further tool calls. Keep the committed limit at 30 and record the evidence.
-- [ ] **DEMO-10** Trigger one allowed, one ask-required, and one forbidden action; show the permission behaviour.
+- [x] **DEMO-9** Demonstrate the native step limit: use a temporary lower `agent.build.maxSteps` (for example via `OPENCODE_CONFIG_CONTENT`) on a task that would exceed it, then show the forced final text-only summary and the absence of further tool calls. Keep the committed limit at 30 and record the evidence. (Temporary `maxSteps = 3`; output stated the maximum step budget was reached and tools were disabled; final stop reason `stop`; no files modified; committed limit remains 30.)
+- [~] **DEMO-10** Trigger one allowed, one ask-required, and one forbidden action; show the permission behaviour. (Allowed and denied demonstrated; `ask` was evaluated and a permission request was emitted, but the JetBrains ACP client auto-resolved it as allow without displaying a prompt.)
 
 ### 11.2 Application demonstration
 
@@ -552,13 +556,15 @@ The M2 demo must be rehearsable and reproducible. Each item needs a visible resu
 
 ### 11.3 Evidence package
 
-- [ ] Verification logs for DEMO-3 to DEMO-9 (redacted).
+Consolidated evidence for the items below is recorded in `M2_EVIDENCE.md`.
+
+- [~] Verification logs for DEMO-3 to DEMO-9 (redacted). (Run outputs were observed; no separate redacted log files are committed in this repository.)
 - [ ] Migration files and schema snapshot.
 - [ ] Test run outputs for typecheck, lint, unit, E2E, build.
 - [ ] RLS test matrix output.
-- [ ] Stop-criterion output.
+- [x] Stop-criterion output. (Output stated the maximum step budget was reached and tools were disabled; final stop reason `stop`.)
 - [ ] Screenshots/clip of the app flows.
-- [ ] Updated documentation (to be done in the implementation phase, not this task).
+- [x] Updated documentation (`M2_EVIDENCE.md`, `M2_DEFINITION_OF_DONE.md`, `HARNESS_README.md`).
 
 ---
 
@@ -656,6 +662,8 @@ The M2 demo must be rehearsable and reproducible. Each item needs a visible resu
 | §5 Focus on core game/auth/leaderboard                              | Scope in §1.2; `OPT` items excluded               |
 
 ## Appendix C — Current baseline gap summary
+
+> This table records the baseline at the time the DoD was written. See `M2_EVIDENCE.md` for the completed M2 evidence.
 
 | Area                | Current state                                                                         | M2 target                              |
 | ------------------- | ------------------------------------------------------------------------------------- | -------------------------------------- |

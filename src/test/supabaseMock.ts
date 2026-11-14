@@ -24,6 +24,7 @@ export interface QueryResult {
 export interface QueryMock {
   select: ReturnType<typeof vi.fn>;
   eq: ReturnType<typeof vi.fn>;
+  order: ReturnType<typeof vi.fn>;
   maybeSingle: ReturnType<typeof vi.fn>;
   insert: ReturnType<typeof vi.fn>;
   single: ReturnType<typeof vi.fn>;
@@ -46,8 +47,12 @@ export function createUsersQuery(
     error: null,
   };
 
-  query.select = vi.fn(() => query);
+  query.select = vi.fn(() => {
+    pending = options.list ?? { data: [], error: null };
+    return query;
+  });
   query.eq = vi.fn(() => query);
+  query.order = vi.fn(() => query);
   query.maybeSingle = vi.fn(() =>
     Promise.resolve(options.select ?? { data: null, error: null }),
   );

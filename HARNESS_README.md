@@ -252,6 +252,8 @@ The configuration lives in `opencode.json` and uses the **V1 `permission` object
 
 It does **not** use V2 syntax such as `permissions`, `shell`, or `subagent`. Rules are evaluated in order, the **last matching rule wins**, and unmatched actions default to `ask`. The configuration was checked against the permission schema shipped with the pinned version (`@opencode-ai/core/v1/config/permission`) and loaded with `opencode debug config` without errors.
 
+**Runtime version note:** the M2 evidence session ran under the JetBrains ACP agent (OpenCode ACP **1.19.3**), while the pinned CLI and `opencode debug config` report **1.18.31**. The project permission rules were evaluated as configured. The version difference is recorded for transparency and is not claimed as the cause of any failure.
+
 ### 12.2 Isolation limitation
 
 This is an **application-level permission configuration, not an OS-level sandbox**. No container, VM, or separate OS user is used. Allowed shell commands run with the host user's filesystem, process, and network authority.
@@ -297,7 +299,13 @@ The project ref is stored in `harness.config.json` as `approvedSupabaseProjectRe
 
 ### 12.6 Evidence status
 
-The configuration is implemented and validated. A live demonstration of one allowed, one confirmation-required, and one denied action is still required for the M2 evidence package. The two domain-specific verification tools are implemented; their live executions and the native step-limit demonstration are separate M2 evidence items.
+The configuration is implemented and validated. The following live results were observed (details in `M2_EVIDENCE.md` §4):
+
+- `npm run typecheck` was allowed and ran without a prompt.
+- `npm install --dry-run` was evaluated as `ask` and a permission request was emitted. The JetBrains ACP client auto-resolved the request as allow, so the command ran. The approval prompt itself was **not** displayed, so prompt behaviour is not claimed as demonstrated; `ask` is delegated to the ACP client.
+- `git push` was denied before execution by the `git *` deny rule.
+
+The two domain-specific verification tools are implemented and their live executions are recorded in `M2_EVIDENCE.md` §1. The native step-limit demonstration is recorded in `M2_EVIDENCE.md` §3.
 
 ## 13. Stop Criterion (M2)
 
@@ -325,14 +333,13 @@ On the final allowed step, OpenCode removes the tools and asks the model for a t
 
 ### 13.3 How to demonstrate it
 
-A controlled demonstration should use a lower limit for one run so the stop is reached quickly, while leaving the committed limit at 30:
+A controlled demonstration used a temporary `agent.build.maxSteps = 3` for one run so the stop was reached quickly, while the committed limit remained 30. A temporary V1 config override can be supplied with `OPENCODE_CONFIG_CONTENT`, for example:
 
-1. Run a headless agent with a temporary V1 config override, for example:
-   ```bash
-   OPENCODE_CONFIG_CONTENT='{"agent":{"build":{"maxSteps":3}}}' \
-     opencode run "Inspect the repository, run the checks, and summarize." --format json
-   ```
-2. Capture the session output and show that the run ends with a forced text-only summary and no further tool calls.
-3. Restore/retain the committed `maxSteps: 30` and record the evidence in the M2 package.
+```bash
+OPENCODE_CONFIG_CONTENT='{"agent":{"build":{"maxSteps":3}}}' \
+  opencode run "Inspect the repository, run the checks, and summarize." --format json
+```
 
-The configuration is loaded and verified. **The stop has not yet been demonstrated live**, so enforcement must not be claimed as demonstrated until that run is recorded.
+**Observed result:** the run output explicitly stated that the maximum step budget was reached and that tools were disabled, and the final stop reason was `stop`. No files were modified by the demonstration. The committed `maxSteps: 30` was retained.
+
+**Evidence status:** the stop criterion has been demonstrated live with a temporary limit. See `M2_EVIDENCE.md` §3.

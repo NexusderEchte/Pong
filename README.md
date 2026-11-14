@@ -2,7 +2,7 @@
 
 A browser-based Ping Pong web application for a university project. This repository contains a playable match against an AI opponent alongside a player dashboard, player profiles, and a global leaderboard.
 
-Authentication is handled by Supabase Auth, and each account has a profile row in `public.users`. Finished game results are stored in `public.games`, and the global leaderboard is loaded from that table. Match history and detailed player statistics still use mock data until the remaining persistence work is implemented. See `M2_DEFINITION_OF_DONE.md` for the agreed acceptance criteria.
+Authentication is handled by Supabase Auth, and each account has a profile row in `public.users`. Finished game results are stored in `public.games`, and the global leaderboard and match history are loaded from that table. Detailed player statistics still use mock data until the remaining persistence work is implemented. See `M2_DEFINITION_OF_DONE.md` for the agreed acceptance criteria.
 
 ## Tech Stack
 
@@ -36,6 +36,43 @@ VITE_SUPABASE_PUBLISHABLE_KEY=...
 ```
 
 Only the publishable key belongs in the browser bundle. Never expose a secret or service-role key through a `VITE_*` variable.
+
+### Database setup
+
+Apply the SQL migrations in `supabase/migrations` to the Supabase development/test project before running the application. The app needs both the base schema (`public.users`, `public.games` and their RLS policies) and the match-history columns.
+
+Apply them in filename order:
+
+1. `20261114162000_initial_schema.sql`
+2. `20261114180000_add_match_history_fields.sql`
+
+#### Applying migrations safely
+
+Prefer the migration wrapper so the migration is recorded in the Supabase migration history:
+
+```bash
+npm run db:migrate:dry-run   # preview only; no changes
+npm run db:migrate           # apply the pending migrations
+```
+
+The wrapper:
+
+- verifies that `harness.config.json` and `supabase/.temp/project-ref` both name the approved project `jbkneqrbjuquvpxrufzu`;
+- runs the pinned CLI `supabase@3.1.0` through `npx`, without adding it to project dependencies;
+- uses only the linked project and rejects database URLs, project refs, passwords, tokens and other credential overrides;
+- never prints credentials or secret values.
+
+Credentials are supplied by linking the approved project once in an interactive terminal:
+
+```bash
+supabase link --project-ref jbkneqrbjuquvpxrufzu
+```
+
+The CLI stores the database credential locally; the wrapper does not read `.env.local`. If the linked credential is missing, the wrapper fails without changing the database - re-link and retry.
+
+Alternatively, open the project's SQL Editor in the Supabase dashboard and run each migration file in the same order. If you apply a migration manually, also record it in `supabase_migrations.schema_migrations` (for example with `supabase migration repair --status applied 20261114180000`) so a later `db push` does not try to apply it again.
+
+Use only the dedicated development/test project (the approved project ref is stored in `harness.config.json`). Do not apply these migrations to production. The second migration is required for match history: without it, saving and loading match history fails because the `opponent`, `opponent_score`, `mode` and `created_at` columns are missing.
 
 Optional: install the Playwright browser used by the end-to-end tests.
 
@@ -91,7 +128,7 @@ If email confirmation is enabled in Supabase, confirm your email before signing 
 ├── src/
 │   ├── components/         # Reusable UI components and app shell
 │   ├── context/            # Authentication provider and context
-│   ├── data/               # Data access; mock fixtures during the prototype
+│   ├── data/               # Data access; Supabase match history and fixtures
 │   ├── lib/                # Routing, validation and formatting helpers
 │   ├── pages/              # Route-level page components
 │   ├── test/               # Test setup and shared test utilities
@@ -169,7 +206,7 @@ The current UI prototype includes:
 
 Remaining M2 work:
 
-- Supabase PostgreSQL persistence for the full match history and player statistics
+- Supabase PostgreSQL persistence for detailed player statistics (match history is persisted in `public.games`)
 
 It intentionally does not include:
 
